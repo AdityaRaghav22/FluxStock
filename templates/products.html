@@ -1,0 +1,148 @@
+{% extends "layout.html"%}
+{% block title %}Inventory{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">📦 Inventory Management</h2>
+
+<div class="row g-4 mb-4">
+  <div class="col-md-3">
+    <div class="card text-white bg-primary shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title fs-3">Raw Materials</h5>
+        <p class="card-text fs-5">Total Items: {{ raw_count }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-white bg-info shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title fs-3">Semi-Finished</h5>
+        <p class="card-text fs-5">Total Items: {{ semi_count }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-white bg-success shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title fs-3">Finished Products</h5>
+        <p class="card-text fs-5">Total Items: {{ finished_count }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-white bg-warning shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title fs-3">Sales Orders</h5>
+        <p class="card-text fs-5">{{ orders_count }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<form method="POST" action="{{ url_for('inventory') }}" class="mb-4" >
+  <input type="hidden" name="action" id="action-field" value="add">
+
+  <div class="row g-3">
+    <!-- Product Type -->
+    <div class="col-md-2">
+      <select name="type" class="form-select" required>
+        <option value="" disabled selected>Select Type</option>
+        <option value="raw">Raw Material</option>
+        <option value="semi">Semi-Finished</option>
+        <option value="finished">Finished Product</option>
+      </select>
+    </div>
+
+    <!-- Product ID Field (Only for Edit/Delete) -->
+    <div class="col-md-2" id="prod-id-field" style="display:none;">
+      <input type="number" name="prod_id" class="form-control" placeholder="Product ID">
+    </div>
+
+    <!-- Editable Fields -->
+    <div class="col">
+      <input type="text" name="name" class="form-control" placeholder="Name">
+    </div>
+    <div class="col">
+      <input type="text" name="category" class="form-control" placeholder="Category">
+    </div>
+    <div class="col">
+      <input type="number" name="price" step="0.01" min="0" class="form-control" placeholder="Price">
+    </div>
+    <div class="col">
+      <input type="number" name="quantity" step="0.01" min="0" class="form-control" placeholder="Quantity">
+    </div>
+
+    <!-- Buttons -->
+    <div class="col">
+      <button type="submit" name="action" value="add" class="btn btn-primary">Add</button>
+      <button type="submit" name="action" value="edit" class="btn btn-secondary">Edit</button>
+      <button type="submit" name="action" value="delete" class="btn btn-danger">Delete</button>
+      <button type="reset" class="btn btn-light">Reset</button>
+    </div>
+  </div>
+</form>
+
+
+<script>
+  const form = document.querySelector("form");
+  const prodIdField = document.getElementById("prod-id-field");
+  const prodIdInput = prodIdField.querySelector("input");
+  const actionButtons = form.querySelectorAll("button[type='submit']");
+  const actionField = document.getElementById("action-field");
+
+  actionButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      const action = button.value;
+      actionField.value = action;  // ✅ sets the actual action
+
+      if (action === "edit" || action === "delete") {
+        prodIdField.style.display = "block";
+        prodIdInput.required = true;
+
+        // Optional fields
+        ["name", "category", "price", "quantity"].forEach(n => {
+          form.querySelector(`[name="${n}"]`).required = false;
+        });
+      } else {
+        prodIdField.style.display = "none";
+        prodIdInput.required = false;
+
+        // Required for adding
+        ["name", "category", "price", "quantity"].forEach(n => {
+          form.querySelector(`[name="${n}"]`).required = true;
+        });
+      }
+    });
+  });
+</script>
+
+<div class="row g-4">
+  {% for title, items in [("Raw Materials", inventory), ("Semi-Finished", semi_finished), ("Finished Products", finished_products)] %}
+  <div class="col-md-4">
+    <div class="bg-white shadow rounded p-3 h-100">
+      <h5 class="text-center">{{ title }}</h5>
+      <table class="table table-bordered table-striped">
+        <thead class="table-light">
+          <tr>
+            <th>ID</th><th>Name</th><th>Category</th><th>Qty</th><th>Price</th><th>SKU</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for name, item in items.items() %}
+          <tr>
+            <td>{{ item.id }}</td>
+            <td>{{ name }}</td>
+            <td>{{ item.category }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.price }}</td>
+            <td>{{ item.sku }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+</div>
+{% endblock %}

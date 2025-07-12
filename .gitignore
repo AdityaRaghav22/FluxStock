@@ -1,0 +1,15 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+
+# Secret config
+config.py
+
+# Environment
+venv/
+
+# Editor/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

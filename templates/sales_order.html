@@ -1,0 +1,45 @@
+{% extends "layout.html"%} 
+{% block title %}Sales Order{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">📊 Order Summary</h2>
+
+<div class="row g-4 mb-4">
+  <div class="col-md-3">
+    <div class="card text-white bg-primary shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Raw Materials</h5>
+        <p class="card-text fs-4">{{ raw_count }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card text-white bg-info shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Semi-Finished</h5>
+        <p class="card-text fs-4">{{ semi_count }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card text-white bg-success shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Finished Products</h5>
+        <p class="card-text fs-4">{{ finished_count }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card text-white bg-warning shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Sales Orders</h5>
+        <p class="card-text fs-4">{{ order_count | length }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,197 @@
+{% extends "layout.html" %}
+{% block title %}Production{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">🏭 Production Management</h2>
+
+<div class="row g-4 mb-4">
+  <div class="col-md-3">
+    <div class="card text-white bg-primary shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title fs-3">Raw Materials</h5>
+        <p class="card-text fs-5">Total Items : {{ raw_count }}</p>
+        <p class="card-text fs-5">Total Quantity : {{ raw_total}}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card text-white bg-info shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title fs-3">Semi-Finished</h5>
+        <p class="card-text fs-5">Total Items : {{ semi_count }}</p>
+        <p class="card-text fs-5">Total Quantity : {{ semi_total}}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card text-white bg-success shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title fs-3">Finished Products</h5>
+        <p class="card-text fs-5">Total Items : {{ finished_count }}</p>
+        <p class="card-text fs-5">Total Quantity : {{ finished_total}}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card text-white bg-warning shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title fs-3">Sales Orders</h5>
+        <p class="card-text fs-5">{{ order_count }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, msg in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ msg }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+{% if message %}
+  <div class="alert alert-info">{{ message }}</div>
+{% endif %}
+
+<form method="POST" class="mb-4">
+  <div class="row g-3 align-items-center">
+    <div class="col-md-2">
+      <select name="product_type" class="form-select" required>
+        <option value="" disabled selected>Select Type</option>
+        <option value="semi" {% if product_type == "semi" %}selected{% endif %}>Semi-Finished</option>
+        <option value="finished" {% if product_type == "finished" %}selected{% endif %}>Finished</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <select name="product_name" class="form-select" required>
+        <option value="" disabled selected>Select Product</option>
+        {% for prod in all_products %}
+          <option value="{{ prod }}" {% if selected_product == prod %}selected{% endif %}>{{ prod }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <input type="number" name="quantity" class="form-control" step="1" min="1" placeholder="Quantity" required>
+    </div>
+    <div class="col-md-2">
+      <input type="number" name="price"
+        class="form-control"
+        step="0.01" min="0"
+        placeholder="Price per Unit"
+        {% if not is_new_product %}disabled{% else %}required{% endif %}>
+    </div>
+    <div class="col-md-3 d-flex gap-2">
+      <button type="submit" name="action" value="check" class="btn btn-secondary w-50"><i class="bi bi-search"></i> Check</button>
+      <button type="submit" name="action" value="produce" class="btn btn-success w-50"><i class="bi bi-gear"></i> Produce</button>
+    </div>
+  </div>
+</form>
+
+{% if bom_data %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="card-title">📋 Bill of Materials for {{ selected_product }}</h5>
+      <p><strong>Maximum Producible Quantity:</strong> {{ max_producible }}</p>
+      <table class="table table-bordered">
+        <thead class="table-light">
+          <tr>
+            <th>Component</th>
+            <th>Quantity Required per Unit</th>
+            <th>Total Required</th>
+            <th>Available</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for component, qty_needed in bom_data.items() %}
+            <tr>
+              <td>{{ component }}</td>
+              <td>{{ qty_needed }}</td>
+              <td>{{ qty_needed * (request.form.get('quantity')|float if request.form.get('quantity') else 1) }}</td>
+              <td>
+                {{
+                  (inventory_raw.get(component, {}).get("quantity", 0) +
+                   semi_finished.get(component, {}).get("quantity", 0))
+                }}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endif %}
+
+<div class="row g-4 mt-4">
+  <div class="col-md-4">
+    <div class="bg-white shadow rounded p-3 h-100">
+      <h5 class="text-center">Raw Materials</h5>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Name</th><th>Qty</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for name, item in inventory_raw.items() %}
+          <tr>
+            <td>{{ name }}</td>
+            <td>{{ item.quantity }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="bg-white shadow rounded p-3 h-100">
+      <h5 class="text-center">Semi-Finished</h5>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Name</th><th>Qty</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for name, item in semi_finished.items() %}
+          <tr>
+            <td>{{ name }}</td>
+            <td>{{ item.quantity }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="bg-white shadow rounded p-3 h-100">
+      <h5 class="text-center">Finished Products</h5>
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Name</th><th>Qty</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for name, item in finished_products.items() %}
+          <tr>
+            <td>{{ name }}</td>
+            <td>{{ item.quantity }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

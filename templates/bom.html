@@ -1,0 +1,147 @@
+{% extends "layout.html" %}
+{% block title %}BOM Management{% endblock %}
+{% block content %}
+<h2 class="mb-4">🧩 Bill of Materials (BOM)</h2>
+
+<div class="row g-4 mb-4">
+  <div class="col-md-3">
+    <div class="card text-white bg-primary shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title fs-3">Raw Materials</h5>
+        <p class="card-text fs-5">Total Items : {{ raw_count }}</p>
+        <p class="card-text fs-5">Total Quantity : {{ raw_total}}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card text-white bg-info shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title fs-3">Semi-Finished</h5>
+        <p class="card-text fs-5">Total Items : {{ semi_count }}</p>
+        <p class="card-text fs-5">Total Quantity : {{ semi_total}}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card text-white bg-success shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title fs-3">Finished Products</h5>
+        <p class="card-text fs-5">Total Items : {{ finished_count }}</p>
+        <p class="card-text fs-5">Total Quantity : {{ finished_total}}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card text-white bg-warning shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title fs-3">Sales Orders</h5>
+        <p class="card-text fs-5">{{ order_count | length }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOM Form -->
+<form method="POST" action="{{ url_for('bom') }}" class="mb-4 row g-3 align-items-center">
+  <div class="col-md-3">
+    <input type="text" name="prod_name" class="form-control" placeholder="Product Name" required>
+  </div>
+  <div class="col-md-3">
+    <input type="text" name="comp_name" class="form-control" placeholder="Component Name">
+  </div>
+  <div class="col-md-2">
+    <input type="number" name="qty" step="0.01" min="0" class="form-control" placeholder="Quantity"
+    {% if action in ['add', 'update'] %} required {% endif %}>
+  </div>
+  <div class="col-md-4 d-flex gap-2 flex-wrap">
+    <button type="submit" name="action" value="add" class="btn btn-success" title="Add Component">
+      <i class="bi bi-plus-circle"></i>
+    </button>
+    <button type="submit" name="action" value="update" class="btn btn-primary" title="Update Component">
+      <i class="bi bi-pencil"></i>
+    </button>
+    <button type="submit" name="action" value="delete" class="btn btn-danger" title="Delete Component">
+      <i class="bi bi-trash"></i>
+    </button>
+    <button type="submit" name="action" value="check" class="btn btn-warning" title="Check BOM">
+      <i class="bi bi-clipboard-check"></i>
+    </button>
+    <button type="submit" name="action" value="delete_bom" class="btn btn-outline-danger" title="Delete Entire BOM">
+      ❌ Delete BOM
+    </button>
+    <a href="{{ url_for('bom') }}" class="btn btn-secondary">View all BOMs</a>
+  </div>
+</form>
+
+{% if selected_bom %}
+  <h4>📦 BOM for: <strong>{{ selected_product }}</strong></h4>
+  <table class="table table-bordered table-striped">
+    <thead>
+      <tr>
+        <th>Component</th>
+        <th>Required Qty</th>
+        {% if completeness %}
+          <th>Available Qty</th>
+          <th>Status</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% if completeness %}
+        {% for comp in selected_bom %}
+        <tr>
+          <td>{{ comp.component }}</td>
+          <td>{{ comp.required }}</td>
+          <td>{{ comp.available }}</td>
+          <td>{{ comp.status }}</td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        {% for comp in selected_bom[selected_product] %}
+        <tr>
+          <td>{{ comp.component }}</td>
+          <td>{{ comp.quantity }}</td>
+        </tr>
+        {% endfor %}
+      {% endif %}
+    </tbody>
+  </table>
+ 
+
+
+{% elif boms %}
+  <h4>📋 All BOMs</h4>
+  <div class="row">
+    {% for product, components in boms.items() %}
+  <div class="col-3 mb-4">
+    <div class="card mt-3 shadow-sm border-1 rounded-3 bg-white h-100">
+      <div class="card-header fw-bold">
+        📦 {{ product }}
+      </div>
+      <div class="card-body">
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th>Required Qty</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for comp in components %}
+            <tr>
+              <td>{{ comp.component }}</td>
+              <td>{{ comp.quantity }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endfor %}
+  </div>
+{% endif %}
+{% endblock %}
