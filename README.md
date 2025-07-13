@@ -48,7 +48,7 @@ Data Handling: MySQL (modular database-based backend)
 
 /backend         → Business logic and inventory modules  
 /templates       → Jinja2 HTML pages  
-/database        → Database Logic and SQL queries
+/database        → Database Logic and SQL queries   
 app.py           → Flask application entry point 
 ---
 
