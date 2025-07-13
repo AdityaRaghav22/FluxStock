@@ -2,9 +2,6 @@
 __pycache__/
 *.py[cod]
 
-# Secret config
-config.py
-
 # Environment
 venv/
 
